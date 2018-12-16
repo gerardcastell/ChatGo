@@ -43,6 +43,9 @@ func sender(connection net.Conn, nick string) {
 	for message != nil {
 		_, err := connection.Write(message)
 		checkErrorAndCloseConn(err, "", connection)
+		if err != nil {
+			return
+		}
 		if string(message) == "exit" {
 			os.Exit(0)
 		}
@@ -55,6 +58,10 @@ func sender(connection net.Conn, nick string) {
 func receiver(connection net.Conn) {
 	buf := make([]byte, 1000)
 	input, err := connection.Read(buf)
+	checkError(err, "")
+	if err != nil {
+		return
+	}
 	message := buf[:input]
 
 	for message != nil {

@@ -32,6 +32,15 @@ func main() {
 	}
 }
 
+func isNickInUse(nick string) (isUsed bool) {
+	for foreignNick := range clients {
+		if foreignNick == nick {
+			return true
+		}
+	}
+	return false
+}
+
 func openConnection(connection net.Conn) {
 
 	nickBuffer := make([]byte, 256)
@@ -44,6 +53,18 @@ func openConnection(connection net.Conn) {
 	nick := string(nickRawData)
 
 	a := ""
+
+	isNickUsed := isNickInUse(nick)
+
+	for isNickUsed {
+		a = "Nickname in use. Please enter a new nick: "
+		connection.Write([]byte(a))
+		nickRawDataSize, _ := connection.Read(nickBuffer)
+		nickRawData := nickBuffer[:nickRawDataSize]
+		nick = string(nickRawData)
+		isNickUsed = isNickInUse(nick)
+	}
+
 	for foreignNick := range clients {
 		if foreignNick == nick {
 			a = "Nickname in use. Please enter a new nick: "
@@ -71,6 +92,7 @@ func openConnection(connection net.Conn) {
 		checkErrorAndCloseConn(err, connection)
 		if err != nil {
 			delete(clients, nick)
+			fmt.Println(nick + "disconnected")
 			return
 		}
 		messageRawData := messageBuffer[:messageRawDataSize]
